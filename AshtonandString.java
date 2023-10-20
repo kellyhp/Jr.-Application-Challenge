@@ -27,7 +27,7 @@ class Result {
         TreeSet<String> resultSet = new TreeSet<>();
 
         int index = 0;
-        int len   = a.length();
+        int len = a.length();
         int tempIndex = 1;
 
         while (index < len){
@@ -42,7 +42,7 @@ class Result {
                 subStringSet.add(str.substring(1));
             }
 
-            len   = str.length();
+            len = str.length();
             tempIndex = 0;
 
             while (tempIndex++ < len){
