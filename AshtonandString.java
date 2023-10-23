@@ -10,64 +10,60 @@ import java.util.stream.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
-class Result {
+class Result1{
+    public static int[] generateSuffixArray(String s) {
+        int len = s.length();
+        SuffixIndex[] suffixIndexes = new SuffixIndex[len];
 
-    /*
-     * Complete the 'ashtonString' function below.
-     *
-     * The function is expected to return a CHARACTER.
-     * The function accepts following parameters:
-     *  1. STRING s
-     *  2. INTEGER k
-     */
-
-    static char ashtonString(String a, int k) {
-
-        TreeSet<String> subStringSet = new TreeSet<>();
-        TreeSet<String> resultSet = new TreeSet<>();
-
-        int index = 0;
-        int len = a.length();
-        int tempIndex = 1;
-
-        while (index < len){
-            subStringSet.add(a.substring(index++));
+        for (int i = 0; i < len; i++) {
+            suffixIndexes[i] = new SuffixIndex(i, s.substring(i));
         }
-        StringBuilder stringBuilder = new StringBuilder();
-        while (true){
+        
+        Arrays.sort(suffixIndexes, Comparator.comparing(suffixIndex -> suffixIndex.suffix));
 
-            String str = subStringSet.pollFirst();
-
-            if(str.length() > 1){
-                subStringSet.add(str.substring(1));
-            }
-
-            len = str.length();
-            tempIndex = 0;
-
-            while (tempIndex++ < len){
-                String res = str.substring(0, tempIndex);
-                if(resultSet.add(res)){
-                    stringBuilder.append(res);
-                }
-            }
-
-            int strLen = stringBuilder.length();
-            if(strLen > k){
-                char ch = stringBuilder.charAt(k-1);
-                resultSet.clear();
-                subStringSet.clear();
-                resultSet = null;
-                subStringSet = null;
-                stringBuilder = null;
-                return ch;
-            }
+        int[] result = new int[len];
+        for (int i = 0; i < len; i++) {
+            result[i] = suffixIndexes[i].index;
         }
+        return result;
     }
 
+    static class SuffixIndex {
+        int index;
+        String suffix;
+
+        SuffixIndex(int index, String suffix) {
+            this.index = index;
+            this.suffix = suffix;
+        }
+    }
+    
+    public static int[] generateLCP(String s, int[] suffix) {
+        int n = s.length();
+        int k = 0;
+        int[] lcp = new int[n];
+        int[] rank = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            rank[suffix[i]] = i;
+        }
+        for (int i = 0; i < n; i++, k = (k > 0) ? k - 1 : 0) {
+            if (rank[i] == n - 1) {
+                k = 0;
+                continue;
+            }
+            int j = suffix[rank[i] + 1];
+            while (i + k < n && j + k < n && s.charAt(i + k) == s.charAt(j + k)) {
+                k++;
+            }
+            lcp[rank[i]] = k;
+        }
+        return lcp;
+    }
 }
 
-public class Solution {
+public class AshtonAndString {
+
     public static void main(String[] args) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
@@ -80,9 +76,28 @@ public class Solution {
 
                 int k = Integer.parseInt(bufferedReader.readLine().trim());
 
-                char res = Result.ashtonString(s, k);
+                int n = s.length();
+                int[] suffix = Result1.generateSuffixArray(s);
+                int[] lcp = Result1.generateLCP(s, suffix);
 
-                bufferedWriter.write(String.valueOf(res));
+                for(int i = 0; i < n; i++) {
+                    int len = n - suffix[i];
+                    int count = len * (len + 1) / 2;
+                    int prefix = lcp[i];
+                    count = count - prefix * (prefix + 1) / 2;
+                     if(k > count) {
+                        k = k - count;
+                        continue;
+                     }
+                    for(int j = prefix + 1; j <= len; j++) {
+                        if (k <= j) {
+                            System.out.println(s.charAt((int)(suffix[i] + k - 1)));
+                            break;
+                        }
+                        k = k - j;
+                    }
+                    break; 
+                }
                 bufferedWriter.newLine();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
